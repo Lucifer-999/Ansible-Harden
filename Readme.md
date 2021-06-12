@@ -1,5 +1,5 @@
 # Connecting to instance
-ssh -i "lucifer-asia.pem" ubuntu@ec2-52-66-202-231.ap-south-1.compute.amazonaws.com
+ssh -i "lucifer-asia.pem" ubuntu@<ip-addr>
 
 
 # Updating the system
@@ -48,17 +48,6 @@ sudo mv ./kubectl /usr/local/bin/kubectl
 sudo kubectl cluster-info --context kind-redcarpet
 
 
-# Installing Kubernetes
-sudo apt-add-repository "deb http://apt.kubernetes.io/ kubernetes-xenial main"
-curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add
-
-sudo apt-get install kubeadm kubelet kubectl -y
-sudo apt-mark hold kubeadm kubelet kubectl
-
-
-# Setup Docker containers for worker and master nodes
-
-
-# Setup Kubernetes for Master
-docker run -dit --name master ubuntu
-
+# Connecting ANSIBLE
+ec2-instance ansible_host=<ip-addr> ansible_user=ubuntu ansible_ssh_private_key_file=<key-file>
+ansible all -m ping
