@@ -12,30 +12,19 @@ apt install docker.io -y
 systemctl start docker
 systemctl enable docker
 
-# Installing GoLang
-sudo add-apt-repository ppa:longsleep/golang-backports -y
-sudo apt-get update
-sudo apt-get install golang -y
+# Install MicroK8s
+sudo snap install microk8s --classic --channel=1.18/stable
 
-# Set GoPath
-mkdir -p ~/go/{bin,pkg,src}
-echo 'export GOPATH="$HOME/go"' >> ~/.bashrc
-echo 'export PATH="$PATH:${GOPATH//://bin:}/bin"' >> ~/.bashrc
-export GOPATH="$HOME/go"
-export PATH="$PATH:${GOPATH//://bin:}/bin"
+# Enable MicroK8s Services
+microk8s enable dns dashboard storage
 
-# Install KIND
-GO111MODULE="on" go get sigs.k8s.io/kind
-cp ~/go/bin/kind /usr/local/bin/
+# Add MicroK8s Group
+sudo usermod -a -G microk8s ubuntu
 
-# Create a Single Node Cluster
-kind create cluster --name redcarpet
+# Setup MicroK8s
+microk8s kubectl get all --all-namespaces
 
-# Installing kubectl
-curl -LO https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl
-chmod +x ./kubectl
-mv ./kubectl /usr/local/bin/kubectl
-
-# Info Cluster
-kubectl cluster-info --context kind-redcarpet
+# Deploy MicroBot
+microk8s kubectl create deployment microbot --image=dontrebootme/microbot:v1
+microk8s kubectl expose deployment microbot --type=NodePort --port=80 --name=microbot-service
 
