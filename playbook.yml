@@ -1,0 +1,25 @@
+---
+- hosts: all
+  name: Installation and Setup Script
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Install Docker
+      apt:
+        name: docker.io
+        update_cache: yes
+    - name: Start Docker Service
+      ansible.builtin.systemd:
+        state: started
+        name: docker
+        enabled: yes
+
+    - name: Install MicroK8s
+      community.general.snap:
+        name: microk8s
+        classic: yes
+        channel: 1.18/stable
+
+    - name: Install Microbot in MicroK8s
+      ansible.builtin.shell: microk8s kubectl get all --all-namespaces; microk8s kubectl create deployment microbot --image=dontrebootme/microbot:v1; microk8s kubectl expose deployment microbot --type=NodePort --port=80 --name=microbot-service
+
