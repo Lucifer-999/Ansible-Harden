@@ -96,3 +96,4 @@ To do so, run the following command and wait for a while for it to complete
 * Since installing complete Kubernetes will slow down the instance, I used MicroK8s for lightweight Kubernetes Installation
 * As an example, ```microbot``` is installed in MicroK8s
 * The playbook has 2 main functions, the first one is to install and setup Docker and MicroK8s and the second one is to harden the system security.
+* ```devsec.hardening``` is used for hadening the system. You can check it out at https://github.com/dev-sec/ansible-collection-hardening.
