@@ -21,8 +21,16 @@
         classic: yes
         channel: 1.18/stable
 
+    - name: Delay for MicroK8s to start
+      wait_for:
+        timeout: 150
+
+    - name: Setup MicroK8s
+      ansible.builtin.shell: microk8s kubectl get all --all-namespaces
+      
     - name: Install Microbot in MicroK8s
-      ansible.builtin.shell: microk8s kubectl get all --all-namespaces; microk8s kubectl create deployment microbot --image=dontrebootme/microbot:v1; microk8s kubectl expose deployment microbot --type=NodePort --port=80 --name=microbot-service
+      ansible.builtin.shell: microk8s kubectl create deployment microbot --image=dontrebootme/microbot:v1; microk8s kubectl expose deployment microbot --type=NodePort --port=80 --name=microbot-service
+
 
 - hosts: all
   name: Harden Script
