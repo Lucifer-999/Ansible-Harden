@@ -1,20 +1,75 @@
-# Connecting to instance
-ssh -i "lucifer-asia.pem" ubuntu@<ip-addr>
+# RedCarpet Task
+This repo contains the task given by RedCarpet Team for the Internship Cyber Security position.
+The task consisted of the following: https://pastebin.com/nve7g3ht
+
+This ReadMe file will guide you to complete the said task
+
+## Create a AWS cloud Account
+
+We will be using AWS as our cloud platform. The free tier is enough to complete the given job.
+So first on all, head over to https://aws.amazon.com/ and sign up for your account. You need to enter your credit card information in order to use the services.
 
 
-# Updating the system
-sudo apt-get update
-sudo apt-get upgrade -y
+## Setup an EC2 Ubuntu Instance
+
+In the AWS Console, head over to EC2 and Launch a new "Ubuntu Server" Instance.
+Create your private key and download it to a safe location, this will be used to access your Ubuntu Instance.
 
 
-# Installing Docker
-sudo apt install docker.io -y
-sudo systemctl start docker
-sudo systemctl enable docker
+## Connect to the Instance
 
-# Installing MicroK8s
-sudo snap install microk8s --classic --channel=1.18/stable
+On the EC2 Dashboard, right click on your newly created Ubuntu Instance and click on connect, you'll see an ssh command. Run this on your system in order to test and connect to the instance.
 
-# Connecting ANSIBLE
-ec2-instance ansible_host=<ip-addr> ansible_user=ubuntu ansible_ssh_private_key_file=<key-file>
-ansible all -m ping
+The command would be like the following: 
+```$ ssh -i "private-key.pem" ubuntu@host-name ```
+
+
+## Installing ANSIBLE
+
+Next up, you need to install ANSIBLE on your system. 
+
+For Debian, 
+``` sudo apt-get install ansible ```
+
+For Arch,
+``` sudo pacman -S ansible ```
+
+Others can check their package manager for help.
+
+
+## Setting Up ANSIBLE
+
+Default ANSIBLE installation directory is /etc/ansible
+
+Create a new hosts file there and add the following:
+``` ec2-instance ansible_host=aws-instance-ip ansible_user=ubuntu ansible_ssh_private_key_file=key-file.pem ````
+
+Note that aws-instance-hostname is the hostname or ip address of your Ubuntu Instance and key-file.pem is your private key file.
+
+To test if your ANSIBLE is running correctly and connected to your Server, run the following command
+``` ansible ec2-instance -m ping ```
+
+It's output should be something like
+``` 
+ec2-instance | SUCCESS => {
+    "ansible_facts": {
+        "discovered_interpreter_python": "/usr/bin/python3"
+    },
+    "changed": false,
+    "ping": "pong"
+}
+```
+
+
+## Installing ANSIBLE Collections Required
+
+There are 2 ANSIBLE collections required for the playbook, devsec.hardening and community.general. To install these, run the following command:
+> ansible-galaxy install -r requirements.yml
+
+
+## Running the Playbook
+
+The last step is to running the playbook which installs docker and kubernetes to the Ubuntu Instance and make security changes to the instance.
+
+To do so, run the following command and wait for a while for it to complete
+> ansible-playbook playbook2.yml
