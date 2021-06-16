@@ -8,6 +8,7 @@
       apt:
         name: docker.io
         update_cache: yes
+        
     - name: Start Docker Service
       ansible.builtin.systemd:
         state: started
@@ -23,3 +24,17 @@
     - name: Install Microbot in MicroK8s
       ansible.builtin.shell: microk8s kubectl get all --all-namespaces; microk8s kubectl create deployment microbot --image=dontrebootme/microbot:v1; microk8s kubectl expose deployment microbot --type=NodePort --port=80 --name=microbot-service
 
+- hosts: all
+  name: Harden Script
+  become: true
+  gather_facts: true
+  collections:
+    - devsec.hardening
+  roles:
+    - devsec.hardening.os_hardening
+    - devsec.hardening.ssh_hardening
+  vars:
+    sysctl_overwrite:
+      # Enable IPv4 traffic forwarding.
+      net.ipv4.ip_forward: 1
+    sftp_enabled: true
