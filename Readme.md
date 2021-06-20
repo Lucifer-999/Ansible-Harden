@@ -98,9 +98,3 @@ To do so, run the following command and wait for a while for it to complete
 * The playbook has 2 main functions, the first one is to install and setup Docker and MicroK8s and the second one is to harden the system security.
 * ```devsec.hardening``` is used for hadening the system. You can check it out at https://github.com/dev-sec/ansible-collection-hardening.
 
-
-## To Implement
-Handlers for following
-* Restart SSHD
-* restart-auditd
-* Update-initramfs

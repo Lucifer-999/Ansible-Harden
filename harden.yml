@@ -69,7 +69,7 @@
   
 
   tasks:
-    
+
     # Install and Configure Auditd
     - name: Install auditd package
       package:
@@ -509,11 +509,6 @@
 
 
     # Harden Docker
-
-    - name: Ensure a separate partition for containers has been created
-      command: "grep /var/lib/docker /etc/fstab"
-      changed_when: no
-      ignore_errors: yes
 
     - name: Ensure auditing is configured for the docker daemon
       lineinfile:
