@@ -206,7 +206,8 @@
         mode: '0750'
 
 
-    # PAM Harden
+    # Privileged Access Management (PAM)
+
 
     - name: Remove pam ccreds to disable password caching
       package:
@@ -273,7 +274,7 @@
         mode: '0750'
 
 
-
+    # SecureTTY
     - name: Create securetty
       ansible.builtin.copy:
         src: 'files/securetty'

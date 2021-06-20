@@ -2,7 +2,7 @@
 This repo contains the task given by RedCarpet Team for the Internship Cyber Security position.
 The task consisted of the following: https://pastebin.com/nve7g3ht
 
-This ReadMe file will guide you to complete the said task
+This ReadMe file will guide you to complete the said task along with the information about the playbook functions.
 
 # Table of Contents
 * [Create a AWS cloud Account](#create-a-aws-cloud-account)
@@ -13,6 +13,25 @@ This ReadMe file will guide you to complete the said task
 * [Installing ANSIBLE Collections Required](#installing-ansible-collections-required)
 * [Running the Playbook](#running-the-playbook)
 * [Notes](#notes)
+
+
+# Information
+The playbook has 2 main functions, 
+* Install and setup Docker and Kubernetes
+* Secure the System
+
+To secure the system, the playbook does the following tasks-
+* Install and configure auditd
+* Secure Cronjob Files
+* Minimise Access to certain files (/etc/shadow, /etc/passwd, etc.)
+* Privileged Access Management (PAM)
+* Secure using modprobe
+* Create SecureTTY
+* Remove/Manage SUID Bit from files
+* Secure Sysctl, initramfs and firewall
+* Secure User Accounts and their Directories
+* Secure SSH (config files, keys, ciphers, etc.)
+* Secure Docker
 
 
 ## Create a AWS cloud Account
@@ -96,5 +115,7 @@ To do so, run the following command and wait for a while for it to complete
 * Since installing complete Kubernetes will slow down the instance, I used MicroK8s for lightweight Kubernetes Installation
 * As an example, ```microbot``` is installed in MicroK8s
 * The playbook has 2 main functions, the first one is to install and setup Docker and MicroK8s and the second one is to harden the system security.
-* ```devsec.hardening``` is used for hadening the system. You can check it out at https://github.com/dev-sec/ansible-collection-hardening.
+* Guidelines from ```DevSec Hardening Framework``` are used in this playbook (https://dev-sec.io/).
+* Certain config files are copied to the server from the ```./files/``` directory.
+* The config files are made Ubuntu-specific only, proper working on different Linux distributions is not guaranteed, it's tried and tested on `Ubuntu Server 20.04 LTS`.
 
