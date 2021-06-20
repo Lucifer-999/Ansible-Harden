@@ -5,6 +5,7 @@ The task consisted of the following: https://pastebin.com/nve7g3ht
 This ReadMe file will guide you to complete the said task along with the information about the playbook functions.
 
 # Table of Contents
+* [Information](#information)
 * [Create a AWS cloud Account](#create-a-aws-cloud-account)
 * [Setup an EC2 Ubuntu Instance](#setup-an-ec2-ubuntu-instance)
 * [Connect to the Instance](#connect-to-the-instance)
