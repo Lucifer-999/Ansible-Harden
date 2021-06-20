@@ -7,6 +7,8 @@
     # system accounts that do not get their login disabled and pasword changed
     os_always_ignore_users: ['root', 'sync', 'shutdown', 'halt']
 
+    auditd_config_file: '/etc/audit/rules.d/docker.rules'
+
     ssh_host_keys_dir: '/etc/ssh'
     sshd_moduli_file: '/etc/ssh/moduli'
     sshd_moduli_minimum: 2048
@@ -67,7 +69,8 @@
   
 
   tasks:
-# Auditd
+    
+    # Install and Configure Auditd
     - name: Install auditd package
       package:
         name: 'auditd'
@@ -80,10 +83,10 @@
         owner: 'root'
         group: 'root'
         mode: '0640'
-      notify: 'restart-auditd'
     
 
-# Cron
+    # Secure Cron Tasks
+
     - name: Find cron files and directories
       find:
         paths:
@@ -117,7 +120,7 @@
         mode: '0444'
 
 
-# MMinimise Access
+    # Minimise Access
     - name: Find files with write-permissions for group
       shell: "find -L {{ item }} -perm /go+w -type f"  
       with_flattened:
@@ -170,7 +173,8 @@
         mode: '0750'
 
 
-# PAM
+    # PAM Harden
+
     - name: Remove pam ccreds to disable password caching
       package:
         name: 'libpam-ccreds'
@@ -210,7 +214,8 @@
       changed_when: false
 
 
-# Modprobe
+    # Modprobe Harden
+
     - name: Install modprobe to disable filesystems
       package:
         name: 'kmod'
@@ -283,7 +288,8 @@
         - '/usr/lib/mc/cons.saver'
 
 
-# Sysctl
+    # Sysctl Harden
+
     - name: Protect sysctl.conf
       file:
         path: '/etc/sysctl.conf'
@@ -307,8 +313,6 @@
         owner: 'root'
         group: 'root'
         mode: '0440'
-      notify:
-        - Update-initramfs
       register: initramfs
 
     - name: Change various sysctl-settings, look at the sysctl-vars file for documentation
@@ -328,7 +332,13 @@
         mode: '0644'
 
 
-# User Accounts
+    # User Accounts Harden
+
+    - name: Delete root pw file /root/.pw (if present)
+      file:
+        path: /root/.pw
+        state: absent
+
     - name: Get UID_MIN from login.defs
       shell: awk '/^\s*UID_MIN\s*([0-9]*).*?$/ {print $2}' /etc/login.defs
       args:
@@ -377,9 +387,7 @@
         path: "/home/ubuntu"
         state: directory
 
-
-# User Accounts
-    - name: Get user accounts | os-09
+    - name: Get user accounts
       command: "awk -F: '{print $1}' /etc/passwd"
       changed_when: false
       check_mode: false
@@ -411,7 +419,8 @@
         purge: 'yes'
       
 
-# SSH
+    # SSH Harden
+
     - name: Replace default 2048 bits RSA keypair
       community.crypto.openssh_keypair:
         state: present
@@ -461,7 +470,6 @@
         mode: '0600'
         owner: 'root'
         group: 'root'
-      notify: Restart sshd
 
     - name: Create sshd_config and set permissions to root/600
       ansible.builtin.copy:
@@ -471,7 +479,6 @@
         owner: 'root'
         group: 'root'
         validate: '/usr/sbin/sshd -T -C user=root -C host=localhost -C addr=localhost -C lport=22 -f %s'
-      notify: Restart sshd
 
     - name: Disable dynamic MOTD
       pamd:
@@ -499,6 +506,108 @@
     - name: Remove all small primes
       shell: awk '$5 >= {{ sshd_moduli_minimum }}' {{ sshd_moduli_file }} > {{ sshd_moduli_file }}.new ;
             [ -r {{ sshd_moduli_file }}.new -a -s {{ sshd_moduli_file }}.new ] && mv {{ sshd_moduli_file }}.new {{ sshd_moduli_file }} || true
-      notify: Restart sshd
 
+
+    # Harden Docker
+
+    - name: Ensure a separate partition for containers has been created
+      command: "grep /var/lib/docker /etc/fstab"
+      changed_when: no
+      ignore_errors: yes
+
+    - name: Ensure auditing is configured for the docker daemon
+      lineinfile:
+        state: present
+        create: yes
+        dest: "{{ auditd_config_file }}"
+        line: "-w /usr/bin/docker -k docker"
+
+    - name: Ensure auditing is configured for Docker files and directories - /var/lib/docker
+      lineinfile:
+        state: present
+        create: yes
+        dest: "{{ auditd_config_file }}"
+        line: "-w /var/lib/docker -k docker"
+      
+    - name: Ensure auditing is configured for Docker files and directories - /etc/docker
+      lineinfile:
+        state: present
+        create: yes
+        dest: "{{ auditd_config_file }}"
+        line: "-w /etc/docker -k docker"
+      
+    - name: Ensure auditing is configured for Docker files and directories - docker.service
+      lineinfile:
+        state: present
+        create: yes
+        dest: "{{ auditd_config_file }}"
+        line: "-w /lib/systemd/system/docker.service -k docker"
+      
+    - name: Ensure auditing is configured for Docker files and directories - docker.socket
+      lineinfile:
+        state: present
+        create: yes
+        dest: "{{ auditd_config_file }}"
+        line: "-w /lib/systemd/system/docker.socket -k docker"
+      
+    - name: Ensure auditing is configured for Docker files and directories - /etc/default/docker
+      lineinfile:
+        state: present
+        create: yes
+        dest: "{{ auditd_config_file }}"
+        line: "-w /etc/default/docker -k docker"
+      
+    - name: Ensure auditing is configured for Docker files and directories - /etc/docker/daemon.json
+      lineinfile:
+        state: present
+        create: yes
+        dest: "{{ auditd_config_file }}"
+        line: "-w /etc/docker/daemon.json -k docker"
+      
+    - name: Ensure auditing is configured for Docker files and directories - /usr/bin/docker-containerd
+      lineinfile:
+        state: present
+        create: yes
+        dest: "{{ auditd_config_file }}"
+        line: "-w /usr/bin/docker-containerd -k docker"
+
+    - name: Ensure auditing is configured for Docker files and directories - /usr/bin/docker-runc
+      lineinfile:
+        state: present
+        create: yes
+        dest: "{{ auditd_config_file }}"
+        line: "-w /usr/bin/docker-runc -k docker"
     
+    - name: "Ensure network traffic is restricted between containers on the default bridge\n
+            Ensure the logging level is set to 'info'\n
+            Ensure Docker is allowed to make changes to iptables\n
+            Enable user namespace support\n
+            Ensure operations on legacy registry (v1) are Disabled\n
+            Ensure live restore is Enabled\n
+            Ensure Userland Proxy is Disabled\n
+            Ensure experimental features are avoided in production\n
+            Ensure containers are restricted from acquiring new privileges"
+      ansible.builtin.copy:
+        src: files/daemon.json
+        dest: "/etc/docker/daemon.json"
+
+    # Update/Restart Handlers
+
+    - name: Update-initramfs
+      command: 'update-initramfs -u'
+
+    - name: restart-auditd
+      command:
+        cmd: 'service auditd restart'
+        warn: false  # sadly 'service' module fails in that case also by using 'use: service'
+
+    - name: Restart sshd
+      service:
+        name: 'ssh'
+        state: restarted
+      become: true
+
+    - name: Restart Docker 
+      service:
+        name: docker
+        state: restarted
